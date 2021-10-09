@@ -28,5 +28,5 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit --allow-empty -m "[GitHub Actions] Initial commit"
+          git commit --allow-empty -m "[GitHub Actions] empty commit"
           git push
