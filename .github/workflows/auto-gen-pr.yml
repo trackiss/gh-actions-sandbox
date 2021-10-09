@@ -43,7 +43,7 @@ jobs:
       - name: create new draft PR
         uses: actions/github-script@v5
         with:
-          github-token: ${{ steps.generate-github-apps.output.tokens }}
+          github-token: ${{ steps.generate-github-apps.outputs.tokens }}
           script: |
             github.rest.pulls.create({
               owner: 'trackiss',
