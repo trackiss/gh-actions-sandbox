@@ -41,7 +41,7 @@ jobs:
           script: |
             github.rest.pulls.create({
               owner: 'trackiss',
-              repo: 'site',
+              repo: 'gh-actions-sandbox',
               title: 'test',
               head: 'feature/${{ github.event.inputs.branch-name }}',
               base: '${{ steps.extract-base-branch.outputs.name }}',
