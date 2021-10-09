@@ -40,6 +40,8 @@ jobs:
           git commit --allow-empty -m "[GitHub Actions] empty commit"
           git push
           echo 'created commit.'
+      - name: show token
+        run: echo '${{ steps.generate-github-apps.outputs.token }}'
       - name: create new draft PR
         uses: actions/github-script@v5
         with:
