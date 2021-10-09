@@ -20,12 +20,13 @@ jobs:
           ref: ${{ steps.extract-base-branch.outputs.name }}
       - name: create and push new branch
         run: |
-          git branch ${{ github.event.inputs.branch-name }}
-          git push origin ${{ github.event.inputs.branch-name }}
+          git branch feature/${{ github.event.inputs.branch-name }}
+          git push origin feature/${{ github.event.inputs.branch-name }}
+          echo 'created branch: ${{ steps.extract-base-branch.outputs.name }} -> feature/${{ github.event.inputs.branch-name }}.'
       - name: checkout new branch
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.inputs.branch-name }}
+          ref: feature/${{ github.event.inputs.branch-name }}
       - name: create new empty commit
         run: |
           git config user.name github-actions
@@ -42,7 +43,7 @@ jobs:
               owner: 'trackiss',
               repo: 'site',
               title: 'test',
-              head: '${{ github.event.inputs.branch-name }}',
+              head: 'feature/${{ github.event.inputs.branch-name }}',
               base: '${{ steps.extract-base-branch.outputs.name }}',
               draft: true
             })
