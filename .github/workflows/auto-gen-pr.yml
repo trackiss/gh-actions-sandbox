@@ -40,7 +40,7 @@ jobs:
           github-token: ${{ secrets.ACTIONS_PAT }}
           script: |
             github.rest.pulls.create({
-              owner: 'github-actions',
+              owner: 'trackiss',
               repo: 'site',
               title: 'test',
               head: 'feature/${{ github.event.inputs.branch-name }}',
