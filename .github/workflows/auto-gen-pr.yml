@@ -10,18 +10,20 @@ jobs:
     needs: print-current-branch
     runs-on: ubuntu-latest
     steps:
-      - name: extract base branch
+      - name: extract base branch name
         run: echo "##[set-output name=name;]$(echo ${GITHUB_REF##*/})"
         id: extract-base-branch
-      - name: create new branch
+      - name: checkout base branch
         uses: actions/checkout@v2.3.4
         with:
           ref: ${{ steps.extract-base-branch.outputs.name }}
+      - name: create new branch
         run: git branch feature/${{ github.event.inputs.branch-name }}
-      - name: create new empty commit
+      - name: checkout new branch
         uses: actions/checkout@v2.3.4
         with:
           ref: feature/${{ github.event.inputs.branch-name }}
+      - name: create new empty commit
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
