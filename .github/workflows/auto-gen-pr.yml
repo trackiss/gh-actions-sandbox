@@ -22,7 +22,7 @@ jobs:
         run: |
           git branch feature/${{ github.event.inputs.branch-name }}
           git push origin feature/${{ github.event.inputs.branch-name }}
-          echo 'created branch: feature/${{ github.event.inputs.branch-name }}.'
+          echo 'created branch: ${{ steps.extract-base-branch.outputs.name }} -> feature/${{ github.event.inputs.branch-name }}.'
       - name: checkout new branch
         uses: actions/checkout@v2
         with:
@@ -43,7 +43,7 @@ jobs:
               owner: 'trackiss',
               repo: 'site',
               title: 'test',
-              head: 'github-actions:feature/${{ github.event.inputs.branch-name }}',
+              head: 'feature/${{ github.event.inputs.branch-name }}',
               base: '${{ steps.extract-base-branch.outputs.name }}',
               draft: true
             })
