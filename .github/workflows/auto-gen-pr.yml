@@ -10,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: extract base branch name
-        run: echo "##[set-output name=name;]$(echo ${GITHUB_REF##*/})"
         id: extract-base-branch
+        run: |
+          echo "##[set-output name=name;]$(echo ${GITHUB_REF##*/})"
+          echo base branch: ${GITHUB_REF##*/}
       - name: checkout base branch
         uses: actions/checkout@v2
         with:
@@ -20,6 +22,7 @@ jobs:
         run: |
           git branch feature/${{ github.event.inputs.branch-name }}
           git push origin feature/${{ github.event.inputs.branch-name }}
+          echo 'created branch: feature/${{ github.event.inputs.branch-name }}.'
       - name: checkout new branch
         uses: actions/checkout@v2
         with:
@@ -30,3 +33,17 @@ jobs:
           git config user.email github-actions@github.com
           git commit --allow-empty -m "[GitHub Actions] empty commit"
           git push
+          echo 'created commit.'
+      - name: create new draft PR
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.ACTIONS_PAT }}
+          script: |
+            github.rest.pulls.create({
+              owner: 'github-actions',
+              repo: 'site',
+              title: 'test',
+              head: 'feature/${{ github.event.inputs.branch-name }}',
+              base: '${{ steps.extract-base-branch.outputs.name }}',
+              draft: true
+            })
