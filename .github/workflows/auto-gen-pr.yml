@@ -43,7 +43,7 @@ jobs:
               owner: 'trackiss',
               repo: 'site',
               title: 'test',
-              head: 'feature/${{ github.event.inputs.branch-name }}',
+              head: 'github-actions:feature/${{ github.event.inputs.branch-name }}',
               base: '${{ steps.extract-base-branch.outputs.name }}',
               draft: true
             })
