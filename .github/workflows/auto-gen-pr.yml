@@ -1,0 +1,7 @@
+name: test
+on: workflow_dispatch
+jobs:
+  print-current-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${GITHUB_REF##*/}
