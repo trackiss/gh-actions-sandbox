@@ -1,7 +1,29 @@
 name: test
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      branch-name:
+        description: new branch name
+        required: true
 jobs:
-  print-current-branch:
+  create-new-branch:
+    needs: print-current-branch
     runs-on: ubuntu-latest
     steps:
-      - run: echo ${GITHUB_REF##*/}
+      - name: extract base branch
+        run: echo "##[set-output name=name;]$(echo ${GITHUB_REF##*/})"
+        id: extract-base-branch
+      - name: create new branch
+        uses: actions/checkout@v2.3.4
+        with:
+          ref: ${{ steps.extract-base-branch.outputs.name }}
+        run: git branch feature/${{ github.event.inputs.branch-name }}
+      - name: create new empty commit
+        uses: actions/checkout@v2.3.4
+        with:
+          ref: feature/${{ github.event.inputs.branch-name }}
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit --allow-empty -m "[GitHub Actions] Initial commit"
+          git push
