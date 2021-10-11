@@ -18,8 +18,7 @@ jobs:
       - name: extract base branch name
         id: extract-base-branch
         run: |
-          echo "##[set-output name=name;]$(echo ${GITHUB_REF##*/})"
-          echo base branch: ${GITHUB_REF##*/}
+          echo '##[set-output name=name;]$(echo ${GITHUB_REF##*/})'
       - name: checkout base branch
         uses: actions/checkout@v2
         with:
@@ -28,7 +27,6 @@ jobs:
         run: |
           git branch feature/${{ github.event.inputs.branch-name }}
           git push origin feature/${{ github.event.inputs.branch-name }}
-          echo 'created branch: ${{ steps.extract-base-branch.outputs.name }} -> feature/${{ github.event.inputs.branch-name }}.'
       - name: checkout new branch
         uses: actions/checkout@v2
         with:
@@ -39,9 +37,6 @@ jobs:
           git config user.email github-actions@github.com
           git commit --allow-empty -m "[GitHub Actions] empty commit"
           git push
-          echo 'created commit.'
-      - name: show token
-        run: echo '${{ steps.generate-github-apps.outputs.token }}'
       - name: create new draft PR
         uses: actions/github-script@v5
         with:
