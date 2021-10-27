@@ -4,8 +4,8 @@ on:
     types: [opened]
 
 jobs: 
-  notify-to-chatwork:
+  print:
     runs-on: ubuntu-20.04
     steps:
       - run: |
-          echo "${{ github.event.issue.title }} ${{ github.event.issue.id }} ${{ github.event.issue }}"
+          echo "${{ github.event.issue.title }} ${{ github.event.issue.id }} ${{ github.event.issue.url }}"
