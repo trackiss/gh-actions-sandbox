@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - run: |
-          echo "${{ github.event.issue.title }} #${{ github.event.issue.number }} ${{ github.event.issue.url }}"
+          echo "${{ github.event.issue.title }} #${{ github.event.issue.number }} ${{ github.event.issue.html_url }}"
