@@ -1,9 +1,9 @@
 name: Print when an issuer is created
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 
-jobs: 
+jobs:
   print:
     runs-on: ubuntu-20.04
     steps:
