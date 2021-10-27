@@ -1,0 +1,11 @@
+name: Print when an issuer is created
+on:
+  issues:
+    types: [opened]
+
+jobs: 
+  notify-to-chatwork:
+    runs-on: ubuntu-20.04
+    steps:
+      - run: |
+          echo "${{ github.event.issue.title }} ${{ github.event.issue.id }} ${{ github.event.issue }}"
