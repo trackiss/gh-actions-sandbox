@@ -2,10 +2,20 @@ name: Print when an issuer is created
 
 on:
   workflow_dispatch:
+    inputs:
+      issue-title:
+        description: issue title
+        required: true
+      issue-number:
+        description: issue number
+        required: true
+      issue-html-url:
+        description: issue html url
+        required: true
 
 jobs:
   print:
     runs-on: ubuntu-20.04
     steps:
       - run: |
-          echo "${{ github.event.issue.title }} #${{ github.event.issue.number }} ${{ github.event.issue.html_url }}"
+          echo "${{ github.event.inputs.issue-title }} #${{ github.event.inputs.issue-number }} ${{ github.event.inputs.issue-html-url }}"
