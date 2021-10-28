@@ -1,7 +1,7 @@
 name: Print when an issuer is created
+
 on:
-  issues:
-    types: [opened, reopened]
+  workflow_dispatch:
 
 jobs:
   print:
