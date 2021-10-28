@@ -1,0 +1,9 @@
+name: Dummy for test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dummy:
+    steps:
+      - name: dummy
