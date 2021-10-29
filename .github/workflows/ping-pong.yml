@@ -1,0 +1,15 @@
+name: Ping-pong bot
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  add-pong-comment:
+    if: github.event.comment.body == "ping"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: github.event.issue.number
+          body: pong
