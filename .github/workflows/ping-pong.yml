@@ -6,7 +6,7 @@ on:
 
 jobs:
   add-pong-comment:
-    if: github.event.comment.body == "ping"
+    if: github.event.comment.body == 'ping'
     runs-on: ubuntu-latest
     steps:
       - uses: peter-evans/create-or-update-comment@v1
