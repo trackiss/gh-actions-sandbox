@@ -1,11 +1,23 @@
-name: Dummy for test
+name: Dummy for test  # ここはダミーのままにしておく
 
 on:
   workflow_dispatch:
+    inputs:           # イベントの値を手入力するようにする
+      issue-number:
+        description: issue number
+        required: true
+      label-name:
+        description: label name
+        required: true
 
 jobs:
-  dummy:
-    if: false
-    runs-on: ubuntu-20.04
+  add-comment:
+    if: github.event.inputs.label-name == 'help-wanted'          # 変数名を変える
+    runs-on: ubuntu-latest
     steps:
-      - run: ""
+      - name: Add comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.inputs.issue-number }}  # 変数名を変える
+          body: |
+            This issue is available for anyone to work on. **Make sure to reference this issue in your pull request.** :sparkles: Thank you for your contribution! :sparkles:
