@@ -1,4 +1,4 @@
-Release <%= Time.now.strftime("%Y-%m-%d") %><%= " #{ENV['RELEASE_PR_TITLE_SUFFIX']}" if ENV['RELEASE_PR_TITLE_SUFFIX'] == "" %>
+Release <%= Time.now.strftime("%Y-%m-%d") %><%= " #{ENV['RELEASE_PR_TITLE_SUFFIX']}" if ENV['RELEASE_PR_TITLE_SUFFIX'] != "" %>
 <% merged_prs.each do |pr| -%>
 <%= "- ##{pr.number}" %>
 <% end -%>
