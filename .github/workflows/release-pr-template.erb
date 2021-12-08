@@ -1,0 +1,4 @@
+Release <%= Time.now.strftime("%Y-%m-%d") %> ENV["RELEASE_PR_TITLE_SUFFIX"]
+<% pull_requests.each do |pr| -%>
+<%= "- #" + pr.number %>
+<% end -%>
