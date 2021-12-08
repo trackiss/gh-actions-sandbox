@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       pr-title-suffix:
-        description: PR タイトルの接尾辞
+        description: タイトルの接尾辞
         required: false
 
 jobs:
