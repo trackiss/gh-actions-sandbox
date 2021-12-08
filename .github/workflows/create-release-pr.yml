@@ -18,9 +18,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_PR_RELEASE_BRANCH_PRODUCTION: main
           GIT_PR_RELEASE_BRANCH_STAGING: develop
-          GIT_PR_RELEASE_TEMPLATE: |-
-            Release <%= Time.now.strftime("%Y-%m-%d") %> ${{ github.event.inputs.pr-title-suffix }}
-            <% pull_requests.each do |pr| -%>
-            <%= "- ##{pr.number}" %>
-            <% end -%>
           TZ: Asia/Tokyo
