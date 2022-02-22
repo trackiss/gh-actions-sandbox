@@ -19,6 +19,11 @@ jobs:
           {{#prs}}
           - #{{number}}
           {{/prs}}
+          "
+          echo "Release $(TZ=Asia/Tokyo date '+%Y-%m-%d')${RELEASE_PR_TITLE_SUFFIX:+ ${RELEASE_PR_TITLE_SUFFIX}}
+          {{#prs}}
+          - #{{number}}
+          {{/prs}}
           " > ./release-pr-template.mustache
       - uses: actions/github-script@v6
         with:
