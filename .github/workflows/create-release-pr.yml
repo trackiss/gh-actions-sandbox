@@ -13,14 +13,9 @@ jobs:
       - uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
-      - run: npm install github-pr-release
+      - run: npm i github-pr-release
       - name: Setup PR template
         run: |
-          echo "Release $(TZ=Asia/Tokyo date '+%Y-%m-%d')${RELEASE_PR_TITLE_SUFFIX:+ ${RELEASE_PR_TITLE_SUFFIX}}
-          {{#prs}}
-          - #{{number}}
-          {{/prs}}
-          "
           echo "Release $(TZ=Asia/Tokyo date '+%Y-%m-%d')${RELEASE_PR_TITLE_SUFFIX:+ ${RELEASE_PR_TITLE_SUFFIX}}
           {{#prs}}
           - #{{number}}
@@ -35,6 +30,9 @@ jobs:
             const releaseMessage = require("github-pr-release/lib/release-message.js");
             const GithubClient = require("github-pr-release/lib/github-client.js");
             const path = require("path");
+            const moment = require("moment");
+
+            const { _, RELEASE_PR_TITLE_SUFFIX } = process.env;
             
             const config = {
               token: '${{ secrets.GITHUB_TOKEN }}',
@@ -45,13 +43,20 @@ jobs:
               template: './release-pr-template.mustache'
             };
 
+            const title = `Release ${moment().format("YYYY-MM-DD")}` + (RELEASE_PR_TITLE_SUFFIX == undefined ? "" : " " + RELEASE_PR_TITLE_SUFFIX);
+
+            const template = `${title}
+            {{#prs}}
+            - #{{number}}
+            {{/prs}}
+            `;
+
             const release = function createReleasePR(config) {
               const client = new GithubClient(config);
 
               return client.prepareReleasePR().then(function (releasePR) {
                 return client.collectReleasePRs(releasePR).then(function (prs) {
                   const templatePath = config.template || path.join(__dirname, "release.mustache");
-                  const template = fs.readFileSync(templatePath, "utf8");
                   const message = releaseMessage(template, prs);
 
                   return client.updatePR(releasePR, message);
@@ -62,3 +67,6 @@ jobs:
             release(config).then(function (pullRequest) {
               console.log(pullRequest);
             });
+        env:
+          TZ: Asia/Tokyo
+          RELEASE_PR_TITLE_SUFFIX: ${{ github.event.inputs.pr-title-suffix }}
