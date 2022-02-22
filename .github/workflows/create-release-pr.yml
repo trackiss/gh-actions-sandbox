@@ -1,0 +1,40 @@
+name: Create release PR
+on:
+  workflow_dispatch:
+    inputs:
+      pr-title-suffix:
+        description: タイトルの接尾辞
+        required: false
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
+      - uses: bahmutov/npm-install@v1
+      - run: npm install github-pr-release
+      - run: |
+          echo "Release $(TZ=Asia/Tokyo date '+%Y-%m-%d')
+          {{#prs}}
+          - #{{number}}
+          {{/prs}}
+          " > ./release-pr-template.mustache
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            const release = require('github-pr-release')
+            
+            const config = {
+              token: ${{ secrets.GITHUB_TOKEN }},
+              owner: '',
+              repo:  'gh-actions-sandbox',
+              head:  'main',
+              base:  'develop',
+              template: './release-pr-template.mustache'
+            }
+
+            release(config).then(function (pullRequest) {
+              console.log(pullRequest)
+            })
