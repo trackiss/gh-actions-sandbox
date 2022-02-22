@@ -41,10 +41,7 @@ jobs:
                 return client.collectReleasePRs(releasePR).then(function (prs) {
                   const title = `Release ${moment().format("YYYY-MM-DD")}` + (RELEASE_PR_TITLE_SUFFIX == undefined ? "" : " " + RELEASE_PR_TITLE_SUFFIX);
 
-                  const template = `{{#prs}}
-                  - #{{number}}
-                  {{/prs}}
-                  `;
+                  const template = `{{#prs}}- #{{number}}\n{{/prs}}`;
 
                   const message = {
                     title: title,
