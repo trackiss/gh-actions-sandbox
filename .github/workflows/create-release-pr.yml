@@ -42,6 +42,8 @@ jobs:
             {{/prs}}
             `;
 
+            console.log(template);
+
             const release = function createReleasePR(config) {
               const client = new GithubClient(config);
 
