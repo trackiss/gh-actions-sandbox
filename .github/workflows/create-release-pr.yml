@@ -31,7 +31,10 @@ jobs:
       - uses: actions/github-script@v6
         with:
           script: |
-            const release = require('github-pr-release')
+            const fs = require("fs");
+            const releaseMessage = require("github-pr-release/lib/release-message.js");
+            const GithubClient = require("github-pr-release/lib/github-client.js");
+            const path = require("path");
             
             const config = {
               token: '${{ secrets.GITHUB_TOKEN }}',
@@ -40,9 +43,22 @@ jobs:
               head:  'develop',
               base:  'main',
               template: './release-pr-template.mustache'
-            }
+            };
+
+            const release = function createReleasePR(config) {
+              const client = new GithubClient(config);
+
+              return client.prepareReleasePR().then(function (releasePR) {
+                return client.collectReleasePRs(releasePR).then(function (prs) {
+                  const templatePath = config.template || path.join(__dirname, "release.mustache");
+                  const template = fs.readFileSync(templatePath, "utf8");
+                  const message = releaseMessage(template, prs);
+
+                  return client.updatePR(releasePR, message);
+                })
+              })
+            };
 
             release(config).then(function (pullRequest) {
-              console.log(pullRequest)
-            })
-
+              console.log(pullRequest);
+            });
