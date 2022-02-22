@@ -22,6 +22,7 @@ jobs:
             const GithubClient = require("github-pr-release/lib/github-client.js");
             const path = require("path");
             const moment = require("moment");
+            const render = require("mustache").render;
 
             const { _, RELEASE_PR_TITLE_SUFFIX } = process.env;
             
@@ -33,24 +34,22 @@ jobs:
               base:  'main'
             };
 
-            console.log(RELEASE_PR_TITLE_SUFFIX);
-            const title = `Release ${moment().format("YYYY-MM-DD")}` + (RELEASE_PR_TITLE_SUFFIX == undefined ? "" : " " + RELEASE_PR_TITLE_SUFFIX);
-
-            const template = `${title}
-            {{#prs}}
-            - #{{number}}
-            {{/prs}}
-            `;
-
-            console.log(template);
-
             const release = function createReleasePR(config) {
               const client = new GithubClient(config);
 
               return client.prepareReleasePR().then(function (releasePR) {
                 return client.collectReleasePRs(releasePR).then(function (prs) {
-                  const templatePath = config.template || path.join(__dirname, "release.mustache");
-                  const message = releaseMessage(template, prs);
+                  const title = `Release ${moment().format("YYYY-MM-DD")}` + (RELEASE_PR_TITLE_SUFFIX == undefined ? "" : " " + RELEASE_PR_TITLE_SUFFIX);
+
+                  const template = `{{#prs}}
+                  - #{{number}}
+                  {{/prs}}
+                  `;
+
+                  const message = {
+                    title: title,
+                    body: render(template, { prs: prs });
+                  };
 
                   return client.updatePR(releasePR, message);
                 })
