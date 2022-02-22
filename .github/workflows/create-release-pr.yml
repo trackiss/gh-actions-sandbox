@@ -48,7 +48,7 @@ jobs:
 
                   const message = {
                     title: title,
-                    body: render(template, { prs: prs });
+                    body: render(template, { prs: prs })
                   };
 
                   return client.updatePR(releasePR, message);
