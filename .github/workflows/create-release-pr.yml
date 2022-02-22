@@ -26,9 +26,9 @@ jobs:
             const release = require('github-pr-release')
             
             const config = {
-              token: ${{ secrets.GITHUB_TOKEN }},
-              owner: '',
-              repo:  'gh-actions-sandbox',
+              token: '${{ secrets.GITHUB_TOKEN }}',
+              owner: '${{ context.repo.owner }}',
+              repo:  '${{ context.repo.repo }}',
               head:  'main',
               base:  'develop',
               template: './release-pr-template.mustache'
