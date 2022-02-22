@@ -33,6 +33,7 @@ jobs:
               base:  'main'
             };
 
+            console.log(RELEASE_PR_TITLE_SUFFIX);
             const title = `Release ${moment().format("YYYY-MM-DD")}` + (RELEASE_PR_TITLE_SUFFIX == undefined ? "" : " " + RELEASE_PR_TITLE_SUFFIX);
 
             const template = `${title}
