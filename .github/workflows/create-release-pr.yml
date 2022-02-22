@@ -14,15 +14,6 @@ jobs:
         with:
           fetch-depth: 0
       - run: npm i github-pr-release
-      - name: Setup PR template
-        run: |
-          echo "Release $(TZ=Asia/Tokyo date '+%Y-%m-%d')${RELEASE_PR_TITLE_SUFFIX:+ ${RELEASE_PR_TITLE_SUFFIX}}
-          {{#prs}}
-          - #{{number}}
-          {{/prs}}
-          " > ./release-pr-template.mustache
-        env:
-          RELEASE_PR_TITLE_SUFFIX: ${{ github.event.inputs.pr-title-suffix }}
       - uses: actions/github-script@v6
         with:
           script: |
@@ -39,8 +30,7 @@ jobs:
               owner: context.repo.owner,
               repo:  context.repo.repo,
               head:  'develop',
-              base:  'main',
-              template: './release-pr-template.mustache'
+              base:  'main'
             };
 
             const title = `Release ${moment().format("YYYY-MM-DD")}` + (RELEASE_PR_TITLE_SUFFIX == undefined ? "" : " " + RELEASE_PR_TITLE_SUFFIX);
