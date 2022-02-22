@@ -8,16 +8,33 @@ on:
 
 jobs:
   create-release-pr:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
-      - uses: bakunyo/git-pr-release-action@v1.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_PR_RELEASE_BRANCH_PRODUCTION: main
-          GIT_PR_RELEASE_BRANCH_STAGING: develop
-          GIT_PR_RELEASE_TEMPLATE: .github/workflows/release-pr-template.erb
-          TZ: Asia/Tokyo
-          RELEASE_PR_TITLE_SUFFIX: ${{ github.event.inputs.pr-title-suffix }}
+      - uses: bahmutov/npm-install@v1
+      - run: npm install github-pr-release
+      - run: |
+          echo "Release $(TZ=Asia/Tokyo date '+%Y-%m-%d')
+          {{#prs}}
+          - #{{number}}
+          {{/prs}}
+          " > ./release-pr-template.mustache
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            const release = require('github-pr-release')
+            
+            const config = {
+              token: ${{ secrets.GITHUB_TOKEN }},
+              owner: '',
+              repo:  'gh-actions-sandbox',
+              head:  'main',
+              base:  'develop',
+              template: './release-pr-template.mustache'
+            }
+
+            release(config).then(function (pullRequest) {
+              console.log(pullRequest)
+            })
