@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
       - run: npm install github-pr-release
       - run: |
-          echo "Release $(TZ=Asia/Tokyo date '+%Y-%m-%d') 
+          echo "Release $(TZ=Asia/Tokyo date '+%Y-%m-%d')${RELEASE_PR_TITLE_SUFFIX:+ ${RELEASE_PR_TITLE_SUFFIX}}
           {{#prs}}
           - #{{number}}
           {{/prs}}
@@ -27,8 +27,8 @@ jobs:
             
             const config = {
               token: '${{ secrets.GITHUB_TOKEN }}',
-              owner: '${{ context.repo.owner }}',
-              repo:  '${{ context.repo.repo }}',
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
               head:  'main',
               base:  'develop',
               template: './release-pr-template.mustache'
@@ -37,3 +37,5 @@ jobs:
             release(config).then(function (pullRequest) {
               console.log(pullRequest)
             })
+        env:
+          RELEASE_PR_TITLE_SUFFIX: ${{ github.event.inputs.pr-title-suffix }}
