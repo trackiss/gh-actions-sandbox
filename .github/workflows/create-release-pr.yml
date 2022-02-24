@@ -19,7 +19,7 @@ jobs:
       - run: gem install git-pr-release
       - name: Create release PR
         id: create-release-pr
-        run: echo "::set-output name=created-pr-and-marged-prs::$(git-pr-release --json | tail -n 1)"
+        run: echo "::set-output name=created-pr-and-merged-prs::$(git-pr-release --json | tail -n 1)"
         env:
           GIT_PR_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_PR_RELEASE_BRANCH_PRODUCTION: main
