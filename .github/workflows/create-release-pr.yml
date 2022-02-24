@@ -27,13 +27,10 @@ jobs:
           GIT_PR_RELEASE_TEMPLATE: .github/workflows/release-pr-template.erb
           TZ: Asia/Tokyo
           RELEASE_PR_TITLE_SUFFIX: ${{ github.event.inputs.pr-title-suffix }}
-      - name: Extract marged PR's titles
+      - name: Extract merged PR's titles
         id: extract-merged-prs-titles
         uses: actions/github-script@v6
         with:
-          script: |
-            let margedPRs = JSON.parse('${{ steps.create-release-pr.outputs.created-pr-and-marged-prs }}').marged_pull_requests;
-            console.log(margedPRs);
-            return margedPRs.map(margedPR => `- ${margedPR.data.title}`).join('\\n');
+          script: return JSON.parse('${{ steps.create-release-pr.outputs.created-pr-and-merged-prs }}').merged_pull_requests.map(pr => `- ${pr.data.title}`).join('\\n');
           result-encoding: string
       - run: echo "${{ steps.extract-merged-prs-titles.outputs.result }}"
