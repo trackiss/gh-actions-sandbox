@@ -31,6 +31,6 @@ jobs:
         id: extract-merged-prs-titles
         uses: actions/github-script@v6
         with:
-          script: return ${{ toJson(steps.create-release-pr.outputs.created-pr-and-merged-prs) }}.merged_pull_requests.map(pr => `- ${pr.data.title}`).join('\\n');
+          script: return JSON.parse(${{ toJson(steps.create-release-pr.outputs.created-pr-and-merged-prs) }}).merged_pull_requests.map(pr => `- ${pr.data.title}`).join('\\n');
           result-encoding: string
       - run: echo "${{ steps.extract-merged-prs-titles.outputs.result }}"
