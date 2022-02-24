@@ -10,52 +10,20 @@ jobs:
   create-release-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - run: npm i github-pr-release
-      - uses: actions/github-script@v6
+      - uses: ruby/setup-ruby@v1
         with:
-          script: |
-            const fs = require("fs");
-            const releaseMessage = require("github-pr-release/lib/release-message.js");
-            const GithubClient = require("github-pr-release/lib/github-client.js");
-            const path = require("path");
-            const moment = require("moment");
-            const render = require("mustache").render;
-
-            const { _, RELEASE_PR_TITLE_SUFFIX } = process.env;
-            
-            const config = {
-              token: '${{ secrets.GITHUB_TOKEN }}',
-              owner: context.repo.owner,
-              repo:  context.repo.repo,
-              head:  'develop',
-              base:  'main'
-            };
-
-            const release = function createReleasePR(config) {
-              const client = new GithubClient(config);
-
-              return client.prepareReleasePR().then(function (releasePR) {
-                return client.collectReleasePRs(releasePR).then(function (prs) {
-                  const title = `Release ${moment().format("YYYY-MM-DD")}` + (RELEASE_PR_TITLE_SUFFIX == undefined ? "" : " " + RELEASE_PR_TITLE_SUFFIX);
-
-                  const template = `{{#prs}}- #{{number}}\n{{/prs}}`;
-
-                  const message = {
-                    title: title,
-                    body: render(template, { prs: prs })
-                  };
-
-                  return client.updatePR(releasePR, message);
-                })
-              })
-            };
-
-            release(config).then(function (pullRequest) {
-              console.log(pullRequest);
-            });
+          ruby-version: 3.1
+      - run: gem install git-pr-release
+      - run: git-pr-release --dry-run --json
+        id: create-release-pr
         env:
+          GIT_PR_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_PR_RELEASE_BRANCH_PRODUCTION: main
+          GIT_PR_RELEASE_BRANCH_STAGING: develop
+          GIT_PR_RELEASE_TEMPLATE: .github/workflows/release-pr-template.erb
           TZ: Asia/Tokyo
           RELEASE_PR_TITLE_SUFFIX: ${{ github.event.inputs.pr-title-suffix }}
+      - run: echo "${{ steps.create-release-pr.outputs }}"
