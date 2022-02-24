@@ -18,8 +18,8 @@ jobs:
           ruby-version: 3.1
       - run: gem install git-pr-release
       - name: Create release PR
-        run: echo "::set-output name=created-pr-json::$(git-pr-release --json | tail -n 1)"
         id: create-release-pr
+        run: echo "::set-output name=created-pr-and-marged-prs::$(git-pr-release --dry-run --json | tail -n 1)"
         env:
           GIT_PR_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_PR_RELEASE_BRANCH_PRODUCTION: main
@@ -27,4 +27,10 @@ jobs:
           GIT_PR_RELEASE_TEMPLATE: .github/workflows/release-pr-template.erb
           TZ: Asia/Tokyo
           RELEASE_PR_TITLE_SUFFIX: ${{ github.event.inputs.pr-title-suffix }}
-      - run: echo "${{ fromJson(steps.create-release-pr.outputs.created-pr-json).release_pull_request }}"
+      - name: Extract marged PR's titles
+        id: extract-merged-prs-titles
+        uses: actions/github-script@v6
+        with:
+          script: return JSON.parse('${{ steps.create-release-pr.outputs.created-pr-and-marged-prs }}').marged_pull_requests.map(margedPR => `- ${margedPR.data.title}`).join('\\n');
+          result-encoding: string
+      - run: echo "${{ steps.extract-merged-prs-titles.outputs.result }}"
