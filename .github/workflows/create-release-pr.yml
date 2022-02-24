@@ -17,7 +17,7 @@ jobs:
         with:
           ruby-version: 3.1
       - run: gem install git-pr-release
-      - run: git-pr-release --dry-run --json
+      - run: echo "::set-output name=created-pr-json::$(git-pr-release --dry-run --json | tail -n 1)"
         id: create-release-pr
         env:
           GIT_PR_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -26,4 +26,4 @@ jobs:
           GIT_PR_RELEASE_TEMPLATE: .github/workflows/release-pr-template.erb
           TZ: Asia/Tokyo
           RELEASE_PR_TITLE_SUFFIX: ${{ github.event.inputs.pr-title-suffix }}
-      - run: echo "${{ steps.create-release-pr.outputs }}"
+      - run: echo "${{ steps.create-release-pr.outputs.created-pr-json }}"
