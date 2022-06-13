@@ -2,7 +2,7 @@ name: Mask test
 on:
   workflow_dispatch:
     inputs:
-      xxx-token:
+      WEBHOOK_TOKEN:
         description: should mask!
         required: true
 
@@ -10,4 +10,4 @@ jobs:
   mask-test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo '${{ github.event.inputs.xxx-token }}'
+      - run: echo '${{ github.event.inputs.WEBHOOK_TOKEN }}'
