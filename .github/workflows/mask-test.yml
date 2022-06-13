@@ -10,4 +10,6 @@ jobs:
   mask-test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo '${{ github.event.inputs.WEBHOOK_TOKEN }}'
+      - run: echo $WEBHOOK_TOKEN
+        env:
+          WEBHOOK_TOKEN: ${{ github.event.inputs.WEBHOOK_TOKEN }}
