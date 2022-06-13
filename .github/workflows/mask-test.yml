@@ -1,0 +1,13 @@
+name: Mask test
+on:
+  workflow_dispatch:
+    inputs:
+      xxx-token:
+        description: should mask!
+        required: true
+
+jobs:
+  mask-test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo '${{ github.event.inputs.xxx-token }}'
