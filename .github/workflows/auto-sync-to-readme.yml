@@ -2,6 +2,8 @@ name: Auto generate preview of OpenAPI with ReadMe
 on:
   pull_request:
     types:
+      - opened
+      - reopened
       - synchronize
 
 jobs:
@@ -15,15 +17,14 @@ jobs:
         uses: tj-actions/changed-files@v32
         with:
           files: |
-            openapi/openapi.yaml
+            ./openapi/openapi.yaml
       - run: npm install node-fetch@3 form-data@4
       - name: Generate preview link
         if: steps.changed-openapis-specific.outputs.any_changed == 'true'
         uses: actions/github-script@v6
         with:
           script: |
-            const script = require('./.github/workflows/auto-sync-to-readme.js')
-            await script.generatePreview({github, context, core})
+            const script = require('./.github/workflows/auto-sync-to-readme.js');
+            await script.generatePreview({github, context, core});
         env:
-          GITHUB_HEAD_REF: ${{github.head_ref}}
           README_API_KEY: ${{secrets.README_API_KEY}}
