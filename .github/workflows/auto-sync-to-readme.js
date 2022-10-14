@@ -102,7 +102,7 @@ exports.generatePreview = async ({ github, context, core }) => {
  * @returns {Promise<fetch.Response>} response
  */
 function fetchReadMe(method, path, body) {
-  const readmeAPIKey = process.env.README_API_KE;
+  const readmeAPIKey = process.env.README_API_KEY;
 
   if (typeof readmeAPIKey === 'undefined') {
     return Promise.reject('`README_API_KEY` environment variable is not set.');
