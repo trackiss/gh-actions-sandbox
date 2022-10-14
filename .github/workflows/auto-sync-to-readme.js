@@ -8,8 +8,7 @@ exports.generatePreview = async ({ github, context, core }) => {
   const GITHUB_HEAD_REF = process.env.GITHUB_HEAD_REF;
 
   if (typeof GITHUB_HEAD_REF === 'undefined') {
-    core.setFailed('An environment variable `GITHUB_HEAD_REF` is not set.');
-    return;
+    return Promise.reject('An environment variable `GITHUB_HEAD_REF` is not set.');
   }
 
   // 英数字以外はハイフンに置き換える
@@ -95,7 +94,7 @@ exports.generatePreview = async ({ github, context, core }) => {
       repo: context.repo.repo,
       body: `Preview link here: https://trackiss.readme.io/${versionId}/reference`
     }))
-    .catch(message => core.setFailed(message));
+    .catch(message => Promise.reject(message));
 };
 
 /**
