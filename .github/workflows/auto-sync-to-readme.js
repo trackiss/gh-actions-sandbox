@@ -17,8 +17,10 @@ exports.generatePreview = async ({ github, context, core }) => {
     return
   }
 
+  const versionIdSuffix = GITHUB_HEAD_REF.replace(/[^a-zA-Z0-9]/g, '-')
+
   // 英数字以外はハイフンに置き換える
-  const versionId = 'v2-' + (GITHUB_HEAD_REF.replace(/[^a-zA-Z0-9]/g, '-'))
+  const versionId = 'v2-' + versionIdSuffix
 
     (async () => {
       // ReadMeのバージョンを取得する
