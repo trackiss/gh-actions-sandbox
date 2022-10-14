@@ -5,7 +5,7 @@ const FormData = require('form-data');
 const stream = require('stream');
 
 exports.generatePreview = async ({ github, context, core }) => {
-  const GITHUB_HEAD_REF = process.env.GITHUB_HEAD_REF;
+  const GITHUB_HEAD_REF = process.env.GITHUB_HEAD_RE;
 
   if (typeof GITHUB_HEAD_REF === 'undefined') {
     return Promise.reject('An environment variable `GITHUB_HEAD_REF` is not set.');
@@ -94,7 +94,7 @@ exports.generatePreview = async ({ github, context, core }) => {
       repo: context.repo.repo,
       body: `Preview link here: https://trackiss.readme.io/${versionId}/reference`
     }))
-    .catch(message => Promise.reject(message));
+    .catch(message => core.setFailed(message));
 };
 
 /**
