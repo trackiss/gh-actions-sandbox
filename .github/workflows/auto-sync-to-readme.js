@@ -1,8 +1,8 @@
-import fetch from 'node-fetch'
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-import FormData from 'form-data'
-import createReadStream from 'fs'
-import stream from 'stream'
+const createReadStream = require('fs')
+const FormData = require('form-data')
+const stream = require('stream')
 
 exports.generatePreview = async ({ github, context, core }) => {
   const { GITHUB_HEAD_REF, README_API_KEY } = process.env
