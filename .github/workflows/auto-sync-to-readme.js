@@ -14,6 +14,7 @@ exports.generatePreview = async ({ github, context, core }) => {
     // ReadMeのバージョンを取得する
     const fetchVersionResponse = await fetchReadMe('GET', '/version/' + versionId)
       .then(response => {
+        console.info(JSON.stringify(response), '\t');
         if (!response.ok && response.status !== 404) {
           return Promise.reject(createErrorMessage('Failed to fetch version.', response.json()));
         }
