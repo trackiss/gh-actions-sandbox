@@ -5,11 +5,7 @@ const FormData = require('form-data');
 const stream = require('stream');
 
 exports.generatePreview = async ({ github, context, core }) => {
-  const GITHUB_HEAD_REF = process.env.GITHUB_HEAD_RE;
-
-  if (typeof GITHUB_HEAD_REF === 'undefined') {
-    return Promise.reject('An environment variable `GITHUB_HEAD_REF` is not set.');
-  }
+  const GITHUB_HEAD_REF = process.env.GITHUB_HEAD_REF;
 
   // 英数字以外はハイフンに置き換える
   const versionId = 'v2-' + GITHUB_HEAD_REF.replace(/[^a-zA-Z0-9]/g, '-');
@@ -106,7 +102,7 @@ exports.generatePreview = async ({ github, context, core }) => {
  * @returns {Promise<fetch.Response>} response
  */
 function fetchReadMe(method, path, body) {
-  const readmeAPIKey = process.env.README_API_KEY;
+  const readmeAPIKey = process.env.README_API_KE;
 
   if (typeof readmeAPIKey === 'undefined') {
     return Promise.reject('`README_API_KEY` environment variable is not set.');
