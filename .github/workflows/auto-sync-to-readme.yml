@@ -15,9 +15,10 @@ jobs:
         uses: tj-actions/changed-files@v32
         with:
           files: |
-            openapi/**
+            openapi/openapi.yaml
       - run: npm install node-fetch@3 form-data@4
       - name: Generate preview link
+        if: steps.changed-openapis-specific.outputs.any_changed == 'true'
         uses: actions/github-script@v6
         with:
           script: |
