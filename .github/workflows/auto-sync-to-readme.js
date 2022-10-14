@@ -19,6 +19,8 @@ exports.generatePreview = async ({ github, context, core }) => {
 
   const versionIdSuffix = GITHUB_HEAD_REF.replace(/[^a-zA-Z0-9]/g, '-')
 
+  console.info('############## - ' + versionIdSuffix)
+
   // 英数字以外はハイフンに置き換える
   const versionId = 'v2-' + versionIdSuffix
 
