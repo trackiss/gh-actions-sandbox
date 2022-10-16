@@ -68,7 +68,7 @@ exports.generatePreview = async ({ github, context, core }) => {
           }
         });
     } else {
-      json = await response.json();
+      json = await fetchVersionResponse.json();
       return Promise.reject(createErrorMessage('Failed to fetch version.', json));
     }
   })()
