@@ -99,9 +99,9 @@ function convertToSemVer(str) {
  * @returns {Promise<fetch.Response>} response
  */
 function fetchReadMe(method, path, body) {
-  const readmeAPIKey = process.env.README_API_KEY;
+  const { README_API_KEY } = process.env;
 
-  if (typeof readmeAPIKey === 'undefined') {
+  if (typeof README_API_KEY === 'undefined') {
     return Promise.reject('`README_API_KEY` environment variable is not set.');
   }
 
@@ -109,7 +109,7 @@ function fetchReadMe(method, path, body) {
     method: method,
     headers: {
       'accept': 'application/json',
-      'authentication': 'Basic ' + readmeAPIKey
+      'authorization': 'Basic ' + Buffer.from(README_API_KEY).toString('base64')
     }
   };
 
