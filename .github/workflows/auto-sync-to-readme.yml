@@ -18,7 +18,7 @@ jobs:
         with:
           files: |
             ./openapi/openapi.yaml
-      - run: npm install node-fetch@3 form-data@4
+      - run: npm install node-fetch@3
       - name: Generate preview link
         if: steps.changed-openapis-specific.outputs.any_changed == 'true'
         uses: actions/github-script@v6
