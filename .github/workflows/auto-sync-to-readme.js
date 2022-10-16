@@ -5,16 +5,13 @@ const FormData = require('form-data');
 const stream = require('stream');
 
 exports.generatePreview = async ({ github, context, core }) => {
-  const GITHUB_HEAD_REF = process.env.GITHUB_HEAD_REF;
+  const { GITHUB_HEAD_REF } = process.env;
 
-  // 英数字以外はハイフンに置き換える
-  const versionId = 'v2-' + GITHUB_HEAD_REF.replace(/[^a-zA-Z0-9]/g, '-');
+  const versionId = convertToSemVer('v2-' + GITHUB_HEAD_REF);
 
   (async () => {
     // ReadMeのバージョンを取得する
     const fetchVersionResponse = await fetchReadMe('GET', '/version/' + versionId);
-
-    console.info(await fetchVersionResponse.json());
 
     if (fetchVersionResponse.status === 404) {
       // ReadMeのバージョンを作成する
@@ -27,9 +24,10 @@ exports.generatePreview = async ({ github, context, core }) => {
       createVersionFormData.append('is_hidden', true);
 
       await fetchReadMe('POST', '/version', createVersionFormData)
-        .then(response => {
-          if (!response.ok) {
-            return Promise.reject(createErrorMessage('Failed to create version.', response.json()));
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => {
+          if (!ok) {
+            return Promise.reject(createErrorMessage('Failed to create version.', json));
           }
         });
 
@@ -38,31 +36,24 @@ exports.generatePreview = async ({ github, context, core }) => {
       uploadOpenAPISpecFormData.append('spec', createReadStream('./openapi/openapi.yaml'));
 
       await fetchReadMe('POST', '/api-specification', uploadOpenAPISpecFormData)
-        .then(response => {
-          if (!response.ok) {
-            return Promise.reject(createErrorMessage('Failed to upload OpenAPI Spec.', response.json()));
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => {
+          if (!ok) {
+            return Promise.reject(createErrorMessage('Failed to upload OpenAPI Spec.', json));
           }
         })
     } else if (fetchVersionResponse.ok) {
       // 更新対象となるOpenAPI仕様のIDを取得する
       /** @type {string} */
       const openapiSpecId = await fetchReadMe('GET', `/version/${versionId}`)
-        .then(response => {
-          const json = response.json();
-
-          if (!response.ok) {
-            return Promise.reject(createErrorMessage('Failed to fetch OpenAPI Specs.', json));
-          }
-
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => ok ? json : Promise.reject(createErrorMessage('Failed to fetch OpenAPI Specs.', json)))
+        .then(json => {
           const id = json.filter(spec => spec.title === 'Swagger Petstore')[0]["_id"];
 
-          if (typeof id === 'undefined') {
-            return Promise.reject(
-              createErrorMessage('A target OpenAPI Spec does not exist.', fetchOpenAPISpecsResponseJson)
-            );
-          }
-
-          return id;
+          return (typeof id !== 'undefined') ? id : Promise.reject(
+            createErrorMessage('A target OpenAPI Spec does not exist.', fetchOpenAPISpecsResponseJson)
+          );
         });
 
       // OpenAPI仕様を更新する
@@ -70,13 +61,15 @@ exports.generatePreview = async ({ github, context, core }) => {
       updateOpenAPISpecFormData.append('spec', createReadStream('./openapi/openapi.yaml'));
 
       await fetchReadMe('PUT', `/api-specification/${openapiSpecId}`, updateOpenAPISpecFormData)
-        .then(response => {
-          if (!response.ok) {
-            return Promise.reject(createErrorMessage('Failed to update OpenAPI Spec.', response.json()));
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => {
+          if (!ok) {
+            return Promise.reject(createErrorMessage('Failed to update OpenAPI Spec.', json));
           }
         });
     } else {
-      return Promise.reject(createErrorMessage('Failed to fetch version.', response.json()));
+      json = await response.json();
+      return Promise.reject(createErrorMessage('Failed to fetch version.', json));
     }
   })()
     .then(() => github.rest.issues.createComment({
@@ -87,6 +80,15 @@ exports.generatePreview = async ({ github, context, core }) => {
     }))
     .catch(message => core.setFailed(message));
 };
+
+/**
+ * Convert to a string compatible with Semantic Versioning
+ * @param {string} str
+ * @returns {string} string compatible with Semantic Versioning
+ */
+function convertToSemVer(str) {
+  return str.replace(/[^a-zA-Z0-9]/g, '-');
+}
 
 /**
  * fetch with ReadMe.com
