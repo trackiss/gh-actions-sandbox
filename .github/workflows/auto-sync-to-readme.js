@@ -12,18 +12,38 @@ exports.generatePreview = async ({ github, context, core }) => {
 
   (async () => {
     // ReadMeのバージョンを取得する
-    const fetchVersionResponse = await fetchReadMe('GET', '/version/' + versionId)
-      .then(response => {
-        console.info(response.status);
+    const fetchVersionResponse = await fetchReadMe('GET', '/version/' + versionId);
 
-        if (!response.ok && response.status !== 404) {
-          return Promise.reject(createErrorMessage('Failed to fetch version.', response.json()));
-        }
+    console.info(fetchVersionResponse.json());
 
-        return response;
-      });
+    if (fetchVersionResponse.status === 404) {
+      // ReadMeのバージョンを作成する
+      const createVersionFormData = new FormData();
+      createVersionFormData.append('version', versionId);
+      createVersionFormData.append('codename', GITHUB_HEAD_REF);
+      createVersionFormData.append('from', 'v2');
+      createVersionFormData.append('is_stable', false);
+      createVersionFormData.append('is_beta', false);
+      createVersionFormData.append('is_hidden', true);
 
-    if (fetchVersionResponse.ok) {
+      await fetchReadMe('POST', '/version', createVersionFormData)
+        .then(response => {
+          if (!response.ok) {
+            return Promise.reject(createErrorMessage('Failed to create version.', response.json()));
+          }
+        });
+
+      // OpenAPI仕様をアップロードする
+      const uploadOpenAPISpecFormData = new FormData();
+      uploadOpenAPISpecFormData.append('spec', createReadStream('./openapi/openapi.yaml'));
+
+      await fetchReadMe('POST', '/api-specification', uploadOpenAPISpecFormData)
+        .then(response => {
+          if (!response.ok) {
+            return Promise.reject(createErrorMessage('Failed to upload OpenAPI Spec.', response.json()));
+          }
+        })
+    } else if (fetchVersionResponse.ok) {
       // 更新対象となるOpenAPI仕様のIDを取得する
       /** @type {string} */
       const openapiSpecId = await fetchReadMe('GET', `/version/${versionId}`)
@@ -55,33 +75,6 @@ exports.generatePreview = async ({ github, context, core }) => {
             return Promise.reject(createErrorMessage('Failed to update OpenAPI Spec.', response.json()));
           }
         });
-    } else if (fetchVersionResponse.status === 404) {
-      // ReadMeのバージョンを作成する
-      const createVersionFormData = new FormData();
-      createVersionFormData.append('version', versionId);
-      createVersionFormData.append('codename', GITHUB_HEAD_REF);
-      createVersionFormData.append('from', 'v2');
-      createVersionFormData.append('is_stable', false);
-      createVersionFormData.append('is_beta', false);
-      createVersionFormData.append('is_hidden', true);
-
-      await fetchReadMe('POST', '/version', createVersionFormData)
-        .then(response => {
-          if (!response.ok) {
-            return Promise.reject(createErrorMessage('Failed to create version.', response.json()));
-          }
-        });
-
-      // OpenAPI仕様をアップロードする
-      const uploadOpenAPISpecFormData = new FormData();
-      uploadOpenAPISpecFormData.append('spec', createReadStream('./openapi/openapi.yaml'));
-
-      await fetchReadMe('POST', '/api-specification', uploadOpenAPISpecFormData)
-        .then(response => {
-          if (!response.ok) {
-            return Promise.reject(createErrorMessage('Failed to upload OpenAPI Spec.', response.json()));
-          }
-        })
     } else {
       return Promise.reject(createErrorMessage('Failed to fetch version.', response.json()));
     }
@@ -117,10 +110,6 @@ function fetchReadMe(method, path, body) {
       'authentication': 'Basic ' + readmeAPIKey
     }
   };
-
-  if (typeof headers !== 'undefined') {
-    Object.assign(params.headers, headers);
-  }
 
   if (typeof body !== 'undefined') {
     params.body = body;
