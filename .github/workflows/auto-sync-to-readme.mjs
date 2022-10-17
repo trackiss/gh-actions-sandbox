@@ -14,15 +14,18 @@ export async function generatePreview({ github, context, core }) {
 
     if (fetchVersionResponse.status === 404) {
       // ReadMeのバージョンを作成する
-      const createVersionFormData = new FormData();
-      createVersionFormData.append('version', versionId);
-      createVersionFormData.append('codename', GITHUB_HEAD_REF);
-      createVersionFormData.append('from', 'v2');
-      createVersionFormData.append('is_stable', false);
-      createVersionFormData.append('is_beta', false);
-      createVersionFormData.append('is_hidden', true);
+      const createVersionRequestJson = {
+        'version': versionId,
+        'codename': GITHUB_HEAD_REF,
+        'from': 'v2',
+        'is_stable': false,
+        'is_beta': false,
+        'is_hidden': true
+      }
 
-      await fetchReadMe('POST', '/version', createVersionFormData)
+      await fetchReadMe('POST', '/version', JSON.stringify(createVersionRequestJson), {
+        'content-type': 'application/json'
+      })
         .then(response => Promise.all([response.ok, response.json()]))
         .then(([ok, json]) => {
           if (!ok) {
@@ -97,7 +100,7 @@ function convertToSemVer(str) {
  * @param {Object} headers
  * @returns {Promise<fetch.Response>} response
  */
-function fetchReadMe(method, path, body) {
+function fetchReadMe(method, path, body, headers) {
   const { README_API_KEY } = process.env;
 
   if (typeof README_API_KEY === 'undefined') {
@@ -114,6 +117,10 @@ function fetchReadMe(method, path, body) {
 
   if (typeof body !== 'undefined') {
     params.body = body;
+  }
+
+  if (typeof headers !== 'undefined') {
+    Object.assign(params.headers, headers);
   }
 
   return fetch('https://dash.readme.com/api/v1' + path, params);
