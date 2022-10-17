@@ -27,4 +27,4 @@ jobs:
             const script = await import('${{ github.workspace }}/.github/workflows/auto-sync-to-readme.mjs');
             await script.generatePreview(github, context, core);
         env:
-          README_API_KEY: ${{secrets.README_API_KEY}}
+          README_API_KEY: ${{ secrets.README_API_KEY }}
