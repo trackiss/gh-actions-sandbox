@@ -4,9 +4,13 @@ import { FormData } from 'formdata-polyfill/esm.min.js'
 
 /**
  * Genarate preview link
+ * @param {*} github oktokit
+ * @param {*} context actions context
+ * @param {*} core @actions/core
  */
-export async function generatePreview({ github, context, core }) {
-  const versionId = createVersionIdFrom(process.env.GITHUB_HEAD_REF);
+export async function generatePreview(github, context, core) {
+  const { GITHUB_HEAD_REF } = process.env;
+  const versionId = createVersionIdFrom(GITHUB_HEAD_REF);
 
   (async () => {
     // ReadMeのバージョンを取得する
@@ -48,6 +52,8 @@ export async function generatePreview({ github, context, core }) {
             return Promise.reject(createErrorMessage('Failed to upload OpenAPI Spec.', json));
           }
         });
+
+      return `Preview link is generated. here: https://dash.readme.com/hub-go/trackiss?redirect=/${versionId}`;
     } else if (fetchVersionResponse.ok) {
       // 更新対象となるOpenAPI仕様のIDを取得する
       /** @type {string} */
@@ -93,8 +99,9 @@ export async function generatePreview({ github, context, core }) {
 
 /**
  * Delete preview link
+ * @param {*} core @actions/core
  */
-export async function deletePreview({ github, context, core }) {
+export async function deletePreview(core) {
   const versionId = createVersionIdFrom(process.env.GITHUB_HEAD_REF);
 
   (async () => {
