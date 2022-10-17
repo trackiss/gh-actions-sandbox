@@ -47,7 +47,7 @@ export async function generatePreview({ github, context, core }) {
     } else if (fetchVersionResponse.ok) {
       // 更新対象となるOpenAPI仕様のIDを取得する
       /** @type {string} */
-      const openapiSpecId = await fetchReadMe('GET', `/version/${versionId}`)
+      const openapiSpecId = await fetchReadMe('GET', '/api-specification', { 'x-readme-version': versionId })
         .then(response => Promise.all([response.ok, response.json()]))
         .then(([ok, json]) => ok ? json : Promise.reject(createErrorMessage('Failed to fetch OpenAPI Specs.', json)))
         .then(json => {
