@@ -1,10 +1,9 @@
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+import createReadStream from 'fs';
+import fetch from 'node-fetch';
+import FormData from 'form-data';
+import stream from 'stream';
 
-const createReadStream = require('fs');
-const FormData = require('form-data');
-const stream = require('stream');
-
-exports.generatePreview = async ({ github, context, core }) => {
+export async function generatePreview({ github, context, core }) {
   const { GITHUB_HEAD_REF } = process.env;
 
   const versionId = convertToSemVer('v2-' + GITHUB_HEAD_REF);
