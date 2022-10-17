@@ -6,7 +6,8 @@ import { FormData } from 'formdata-polyfill/esm.min.js'
  * Genarate preview link
  */
 export async function generatePreview({ github, context, core }) {
-  const versionId = createVersionIdFrom(process.env.GITHUB_HEAD_REF);
+  const { GITHUB_HEAD_REF } = process.env;
+  const versionId = createVersionIdFrom(GITHUB_HEAD_REF);
 
   (async () => {
     // ReadMeのバージョンを取得する
@@ -108,7 +109,14 @@ export async function deletePreview({ github, context, core }) {
       await fetchReadMe('DELETE', `/version/${versionId}`)
         .then(response => Promise.all([response.ok, response.json()]))
         .then(([ok, json]) => {
-          if (!ok) {
+          if (ok) {
+            return github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Preview link is deleted.`
+            });
+          } else {
             return Promise.reject(createErrorMessage('Failed to delete version.', json));
           }
         });
