@@ -4,9 +4,6 @@ import { FormData } from 'formdata-polyfill/esm.min.js'
 
 /**
  * Genarate preview link
- * @param {*} github oktokit
- * @param {*} context actions context
- * @param {*} core @actions/core
  */
 export async function generatePreview(github, context, core) {
   const { GITHUB_HEAD_REF } = process.env;
@@ -103,9 +100,8 @@ export async function generatePreview(github, context, core) {
 
 /**
  * Delete preview link
- * @param {*} core @actions/core
  */
-export async function deletePreview(core) {
+export async function deletePreview(github, context, core) {
   const versionId = createVersionIdFrom(process.env.GITHUB_HEAD_REF);
 
   (async () => {
@@ -129,6 +125,8 @@ export async function deletePreview(core) {
       json = await fetchVersionResponse.json();
       return Promise.reject(createErrorMessage('Failed to fetch version.', json));
     }
+
+    return 'Preview link is deleted.';
   })()
     .then(body => github.rest.issues.createComment({
       issue_number: context.issue.number,
