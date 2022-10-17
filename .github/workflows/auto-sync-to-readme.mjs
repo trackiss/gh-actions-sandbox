@@ -83,18 +83,22 @@ export async function generatePreview(github, context, core) {
             return Promise.reject(createErrorMessage('Failed to update OpenAPI Spec.', json));
           }
         });
+
+      return 'Preview link is updated.';
     } else {
       json = await fetchVersionResponse.json();
       return Promise.reject(createErrorMessage('Failed to fetch version.', json));
     }
   })()
-    .then(() => github.rest.issues.createComment({
+    .then(body => github.rest.issues.createComment({
       issue_number: context.issue.number,
       owner: context.repo.owner,
       repo: context.repo.repo,
-      body: `Preview link here: https://dash.readme.com/hub-go/trackiss?redirect=/${versionId}`
+      body: body
     }))
-    .catch(message => core.setFailed(message));
+    .catch(message => {
+      core.setFailed(message)
+    });
 };
 
 /**
@@ -119,11 +123,19 @@ export async function deletePreview(core) {
             return Promise.reject(createErrorMessage('Failed to delete version.', json));
           }
         });
+
+      return 'Preview link is deleted.';
     } else {
       json = await fetchVersionResponse.json();
       return Promise.reject(createErrorMessage('Failed to fetch version.', json));
     }
   })()
+    .then(body => github.rest.issues.createComment({
+      issue_number: context.issue.number,
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      body: body
+    }))
     .catch(message => core.setFailed(message));
 }
 
