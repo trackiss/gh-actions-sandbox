@@ -18,6 +18,6 @@ jobs:
         with:
           script: |
             const script = await import('${{ github.workspace }}/.github/workflows/auto-delete-readme.mjs');
-            await script.deletePreview({github, context, core});
+            await script.deletePreview(core);
         env:
           README_API_KEY: ${{secrets.README_API_KEY}}
