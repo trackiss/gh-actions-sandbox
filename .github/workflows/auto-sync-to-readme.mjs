@@ -20,7 +20,7 @@ export async function generatePreview({ github, context, core }) {
         is_stable: false,
         is_beta: false,
         is_hidden: true
-      }
+      };
 
       await fetchReadMe('POST', '/version', {
         headers: { 'content-type': 'application/json' },
@@ -46,7 +46,7 @@ export async function generatePreview({ github, context, core }) {
           if (!ok) {
             return Promise.reject(createErrorMessage('Failed to upload OpenAPI Spec.', json));
           }
-        })
+        });
     } else if (fetchVersionResponse.ok) {
       // 更新対象となるOpenAPI仕様のIDを取得する
       /** @type {string} */
