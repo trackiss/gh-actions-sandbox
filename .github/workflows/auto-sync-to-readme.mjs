@@ -37,7 +37,7 @@ export async function generatePreview({ github, context, core }) {
       const uploadOpenAPISpecFormData = new FormData();
       uploadOpenAPISpecFormData.append('spec', fileFromSync('./openapi/openapi.yaml'));
 
-      await fetchReadMe('POST', '/api-specification', uploadOpenAPISpecFormData)
+      await fetchReadMe('POST', '/api-specification', uploadOpenAPISpecFormData, { 'x-readme-version': versionId })
         .then(response => Promise.all([response.ok, response.json()]))
         .then(([ok, json]) => {
           if (!ok) {
