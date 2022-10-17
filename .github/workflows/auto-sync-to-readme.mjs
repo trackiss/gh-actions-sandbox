@@ -6,7 +6,7 @@ import stream from 'node:stream';
 export async function generatePreview({ github, context, core }) {
   const { GITHUB_HEAD_REF } = process.env;
 
-  const versionId = convertToSemVer('v2-' + GITHUB_HEAD_REF);
+  const versionId = convertToSemVer(`v2-${GITHUB_HEAD_REF}-2`);
 
   (async () => {
     // ReadMeのバージョンを取得する
@@ -78,7 +78,7 @@ export async function generatePreview({ github, context, core }) {
       issue_number: context.issue.number,
       owner: context.repo.owner,
       repo: context.repo.repo,
-      body: `Preview link here: https://trackiss.readme.io/${versionId}/reference`
+      body: `Preview link here: https://dash.readme.com/hub-go/trackiss?redirect=/${versionId}`
     }))
     .catch(message => core.setFailed(message));
 };
@@ -111,7 +111,7 @@ function fetchReadMe(method, path, body, headers) {
     method: method,
     headers: {
       'accept': 'application/json',
-      'authorization': 'Basic ' + Buffer.from(README_API_KEY).toString('base64')
+      'authorization': `Basic ${Buffer.from(README_API_KEY).toString('base64')}`
     }
   };
 
@@ -133,5 +133,5 @@ function fetchReadMe(method, path, body, headers) {
  * @returns {string} error message
  */
 function createErrorMessage(message, json) {
-  return `${message} response:` + JSON.stringify(json, '\t');
+  return `${message} response: ${JSON.stringify(json, '\t')}`;
 }
