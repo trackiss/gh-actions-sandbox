@@ -1,0 +1,23 @@
+name: Auto delete preview of OpenAPI Spec with ReadMe
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  sync-to-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: npm install node-fetch@3
+      - name: Generate preview link
+        if: steps.changed-openapis-specific.outputs.any_changed == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const script = await import('${{ github.workspace }}/.github/workflows/auto-delete-readme.mjs');
+            await script.deletePreview({github, context, core});
+        env:
+          README_API_KEY: ${{secrets.README_API_KEY}}

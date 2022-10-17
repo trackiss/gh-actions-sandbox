@@ -1,140 +1,164 @@
-import fetch from 'node-fetch'
+import fetch from 'node-fetch';
+import { fileFromSync } from 'fetch-blob/from.js'
+import { FormData } from 'formdata-polyfill/esm.min.js'
 
-import FormData from 'form-data'
-import createReadStream from 'fs'
-import stream from 'stream'
+/**
+ * Genarate preview link
+ */
+export async function generatePreview({ github, context, core }) {
+  const versionId = createVersionIdFrom(process.env.GITHUB_HEAD_REF);
 
-exports.generatePreview = async ({ github, context, core }) => {
-  const { GITHUB_HEAD_REF, README_API_KEY } = process.env
+  (async () => {
+    // ReadMeのバージョンを取得する
+    const fetchVersionResponse = await fetchReadMe('GET', `/version/${versionId}`);
 
-  if (typeof GITHUB_HEAD_REF === 'undefined') {
-    core.setFailed('An environment variable `GITHUB_HEAD_REF` is not set.')
-    return
-  }
+    if (fetchVersionResponse.status === 404) {
+      // ReadMeのバージョンを作成する
+      const createVersionRequestJson = {
+        version: versionId,
+        codename: GITHUB_HEAD_REF,
+        from: 'v2',
+        is_stable: false,
+        is_beta: false,
+        is_hidden: true
+      };
 
-  if (typeof README_API_KEY === 'undefined') {
-    core.setFailed('An environment variable `README_API_KEY` is not set.')
-    return
-  }
-
-  // 英数字以外はハイフンに置き換える
-  const versionId = 'v2-' + GITHUB_HEAD_REF.replace(/[^a-zA-Z0-9]/g, '-')
-
-    (async () => {
-      // ReadMeのバージョンを取得する
-      const fetchVersionResponse = await fetchReadMe('GET', '/version/' + versionId)
-        .then(response => {
-          if (!response.ok && response.status !== 404) {
-            return Promise.reject(createErrorMessage('Failed to fetch version.', response.json()))
+      await fetchReadMe('POST', '/version', {
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(createVersionRequestJson)
+      })
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => {
+          if (!ok) {
+            return Promise.reject(createErrorMessage('Failed to create version.', json));
           }
-
-          return response
         });
 
-      if (fetchVersionResponse.ok) {
-        // 更新対象となるOpenAPI仕様のIDを取得する
-        /** @type {string} */
-        const openapiSpecId = await fetchReadMe('GET', `/version/${versionId}`)
-          .then(response => {
-            const json = response.json()
+      // OpenAPI仕様をアップロードする
+      const uploadOpenAPISpecFormData = new FormData();
+      uploadOpenAPISpecFormData.append('spec', fileFromSync('./openapi/openapi.yaml'));
 
-            if (!response.ok) {
-              return Promise.reject(createErrorMessage('Failed to fetch OpenAPI Specs.', json))
-            }
+      await fetchReadMe('POST', '/api-specification', {
+        headers: { 'x-readme-version': versionId },
+        body: uploadOpenAPISpecFormData
+      })
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => {
+          if (!ok) {
+            return Promise.reject(createErrorMessage('Failed to upload OpenAPI Spec.', json));
+          }
+        });
+    } else if (fetchVersionResponse.ok) {
+      // 更新対象となるOpenAPI仕様のIDを取得する
+      /** @type {string} */
+      const openapiSpecId = await fetchReadMe('GET', '/api-specification', {
+        headers: { 'x-readme-version': versionId }
+      })
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => ok ? json : Promise.reject(createErrorMessage('Failed to fetch OpenAPI Specs.', json)))
+        .then(json => {
+          const id = json.filter(spec => spec.title === 'Swagger Petstore')[0]["_id"];
 
-            const id = json.filter(spec => spec.title === 'Swagger Petstore')[0]["_id"]
+          return (typeof id !== 'undefined') ? id : Promise.reject(
+            createErrorMessage('A target OpenAPI Spec does not exist.', fetchOpenAPISpecsResponseJson)
+          );
+        });
 
-            if (typeof id === 'undefined') {
-              return Promise.reject(
-                createErrorMessage('A target OpenAPI Spec does not exist.', fetchOpenAPISpecsResponseJson)
-              )
-            }
+      // OpenAPI仕様を更新する
+      const updateOpenAPISpecFormData = new FormData();
+      updateOpenAPISpecFormData.append('spec', fileFromSync('./openapi/openapi.yaml'));
 
-            return id
-          })
-
-        // OpenAPI仕様を更新する
-        const updateOpenAPISpecFormData = new FormData()
-        updateOpenAPISpecFormData.append('spec', createReadStream('./openapi/openapi.yaml'))
-
-        await fetchReadMe('PUT', `/api-specification/${openapiSpecId}`, updateOpenAPISpecFormData)
-          .then(response => {
-            if (!response.ok) {
-              return Promise.reject(createErrorMessage('Failed to update OpenAPI Spec.', response.json()));
-            }
-          })
-      } else if (fetchVersionResponse.status === 404) {
-        // ReadMeのバージョンを作成する
-        const createVersionFormData = new FormData()
-        createVersionFormData.append('version', versionId)
-        createVersionFormData.append('codename', GITHUB_HEAD_REF)
-        createVersionFormData.append('from', 'v2')
-        createVersionFormData.append('is_stable', false)
-        createVersionFormData.append('is_beta', false)
-        createVersionFormData.append('is_hidden', true)
-
-        await fetchReadMe('POST', '/version', createVersionFormData)
-          .then(response => {
-            if (!response.ok) {
-              return Promise.reject(createErrorMessage('Failed to create version.', response.json()));
-            }
-          })
-
-        // OpenAPI仕様をアップロードする
-        const uploadOpenAPISpecFormData = new FormData()
-        uploadOpenAPISpecFormData.append('spec', createReadStream('./openapi/openapi.yaml'))
-
-        await fetchReadMe('POST', '/api-specification', uploadOpenAPISpecFormData)
-          .then(response => {
-            if (!response.ok) {
-              return Promise.reject(createErrorMessage('Failed to upload OpenAPI Spec.', response.json()));
-            }
-          })
-      } else {
-        return Promise.reject(createErrorMessage('Failed to fetch version.', response.json()))
-      }
-    })()
+      await fetchReadMe('PUT', `/api-specification/${openapiSpecId}`, {
+        body: updateOpenAPISpecFormData
+      })
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => {
+          if (!ok) {
+            return Promise.reject(createErrorMessage('Failed to update OpenAPI Spec.', json));
+          }
+        });
+    } else {
+      json = await fetchVersionResponse.json();
+      return Promise.reject(createErrorMessage('Failed to fetch version.', json));
+    }
+  })()
     .then(() => github.rest.issues.createComment({
       issue_number: context.issue.number,
       owner: context.repo.owner,
       repo: context.repo.repo,
-      body: `Preview link here: https://trackiss.readme.io/${versionId}/reference`
+      body: `Preview link here: https://dash.readme.com/hub-go/trackiss?redirect=/${versionId}`
     }))
-    .catch(message => core.setFailed(message))
+    .catch(message => core.setFailed(message));
 };
+
+/**
+ * Delete preview link
+ */
+export async function deletePreview({ github, context, core }) {
+  const versionId = createVersionIdFrom(process.env.GITHUB_HEAD_REF);
+
+  (async () => {
+    // ReadMeのバージョンを取得する
+    const fetchVersionResponse = await fetchReadMe('GET', `/version/${versionId}`);
+
+    if (fetchVersionResponse.status === 404) {
+      // nop
+    } else if (fetchVersionResponse.ok) {
+      // ReadMeのバージョンを削除する
+      await fetchReadMe('DELETE', `/version/${versionId}`)
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => {
+          if (!ok) {
+            return Promise.reject(createErrorMessage('Failed to delete version.', json));
+          }
+        });
+    } else {
+      json = await fetchVersionResponse.json();
+      return Promise.reject(createErrorMessage('Failed to fetch version.', json));
+    }
+  })()
+    .catch(message => core.setFailed(message));
+}
+
+/**
+ * Create ReadMe version ID from current branch name
+ * @param {string} branchName 
+ * @returns {string} ReadMe version ID
+ */
+function createVersionIdFrom(branchName) {
+  return `v2-${branchName.replace(/[^a-zA-Z0-9]/g, '-')}`;
+}
 
 /**
  * fetch with ReadMe.com
  * @param {string} method
  * @param {string} path
- * @param {string|stream.Readable} body
+ * @param {Object} params
+ * @param {string|Blob} body
  * @param {Object} headers
  * @returns {Promise<fetch.Response>} response
  */
-function fetchReadMe(method, path, body, headers) {
-  const readmeAPIKey = process.env.README_API_KEY
+function fetchReadMe(method, path, params = {}) {
+  const { README_API_KEY } = process.env;
 
-  if (typeof readmeAPIKey === 'undefined') {
-    return Promise.reject('`README_API_KEY` environment variable is not set.')
+  if (typeof README_API_KEY === 'undefined') {
+    return Promise.reject('`README_API_KEY` environment variable is not set.');
   }
 
-  const params = {
-    method: method,
-    headers: {
-      'accept': 'application/json',
-      'authentication': 'Basic ' + readmeAPIKey
-    }
+  params.method = method;
+
+  const headers = {
+    accept: 'application/json',
+    authorization: `Basic ${Buffer.from(README_API_KEY).toString('base64')}`
+  };
+
+  if (typeof params.headers !== 'undefined') {
+    Object.assign(headers, params.headers);
   }
 
-  if (typeof headers !== 'undefined') {
-    Object.assign(params.headers, headers)
-  }
+  params.headers = headers;
 
-  if (typeof body !== 'undefined') {
-    params.body = body
-  }
-
-  return fetch('https://dash.readme.com/api/v1' + path, params)
+  return fetch('https://dash.readme.com/api/v1' + path, params);
 }
 
 /**
@@ -144,5 +168,5 @@ function fetchReadMe(method, path, body, headers) {
  * @returns {string} error message
  */
 function createErrorMessage(message, json) {
-  return `${message} response:` + JSON.stringify(json, '\t')
+  return `${message} response: ${JSON.stringify(json, '\t')}`;
 }
