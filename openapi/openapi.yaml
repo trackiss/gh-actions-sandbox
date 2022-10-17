@@ -78,7 +78,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     put:
-      summary: Update a specific pet
+      summary: Update a specific pet!!!
       operationId: updatePetById
       tags:
         - pets

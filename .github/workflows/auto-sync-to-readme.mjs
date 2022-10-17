@@ -88,7 +88,7 @@ export async function generatePreview({ github, context, core }) {
         issue_number: context.issue.number,
         owner: context.repo.owner,
         repo: context.repo.repo,
-        body: `Preview link here: <a href=${link} target="_blank" rel="noopener noreferrer">${link}</a>`
+        body: `Preview link here: <a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`
       });
     })
     .catch(message => core.setFailed(message));
