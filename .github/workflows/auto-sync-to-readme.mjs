@@ -2,10 +2,11 @@ import fetch from 'node-fetch';
 import { fileFromSync } from 'fetch-blob/from.js'
 import { FormData } from 'formdata-polyfill/esm.min.js'
 
+/**
+ * Genarate preview link
+ */
 export async function generatePreview({ github, context, core }) {
-  const { GITHUB_HEAD_REF } = process.env;
-
-  const versionId = convertToSemVer(`v2-${GITHUB_HEAD_REF}-2`);
+  const versionId = createVersionIdFrom(process.env.GITHUB_HEAD_REF);
 
   (async () => {
     // ReadMeのバージョンを取得する
@@ -91,12 +92,41 @@ export async function generatePreview({ github, context, core }) {
 };
 
 /**
- * Convert to a string compatible with Semantic Versioning
- * @param {string} str
- * @returns {string} string compatible with Semantic Versioning
+ * Delete preview link
  */
-function convertToSemVer(str) {
-  return str.replace(/[^a-zA-Z0-9]/g, '-');
+export async function deletePreview({ github, context, core }) {
+  const versionId = createVersionIdFrom(process.env.GITHUB_HEAD_REF);
+
+  (async () => {
+    // ReadMeのバージョンを取得する
+    const fetchVersionResponse = await fetchReadMe('GET', `/version/${versionId}`);
+
+    if (fetchVersionResponse.status === 404) {
+      // nop
+    } else if (fetchVersionResponse.ok) {
+      // ReadMeのバージョンを削除する
+      await fetchReadMe('DELETE', `/version/${versionId}`)
+        .then(response => Promise.all([response.ok, response.json()]))
+        .then(([ok, json]) => {
+          if (!ok) {
+            return Promise.reject(createErrorMessage('Failed to delete version.', json));
+          }
+        });
+    } else {
+      json = await fetchVersionResponse.json();
+      return Promise.reject(createErrorMessage('Failed to fetch version.', json));
+    }
+  })()
+    .catch(message => core.setFailed(message));
+}
+
+/**
+ * Create ReadMe version ID from current branch name
+ * @param {string} branchName 
+ * @returns {string} ReadMe version ID
+ */
+function createVersionIdFrom(branchName) {
+  return `v2-${branchName.replace(/[^a-zA-Z0-9]/g, '-')}`;
 }
 
 /**
