@@ -1,7 +1,7 @@
-import createReadStream from 'fs';
 import fetch from 'node-fetch';
-import FormData from 'form-data';
-import stream from 'stream';
+import { fileFromSync } from 'fetch-blob/from.js'
+import { FormData } from 'formdata-polyfill/esm.min.js'
+import stream from 'node:stream';
 
 export async function generatePreview({ github, context, core }) {
   const { GITHUB_HEAD_REF } = process.env;
@@ -10,7 +10,7 @@ export async function generatePreview({ github, context, core }) {
 
   (async () => {
     // ReadMeのバージョンを取得する
-    const fetchVersionResponse = await fetchReadMe('GET', '/version/' + versionId);
+    const fetchVersionResponse = await fetchReadMe('GET', `/version/${versionId}`);
 
     if (fetchVersionResponse.status === 404) {
       // ReadMeのバージョンを作成する
@@ -32,7 +32,7 @@ export async function generatePreview({ github, context, core }) {
 
       // OpenAPI仕様をアップロードする
       const uploadOpenAPISpecFormData = new FormData();
-      uploadOpenAPISpecFormData.append('spec', createReadStream('./openapi/openapi.yaml'));
+      uploadOpenAPISpecFormData.append('spec', fileFromSync('./openapi/openapi.yaml'));
 
       await fetchReadMe('POST', '/api-specification', uploadOpenAPISpecFormData)
         .then(response => Promise.all([response.ok, response.json()]))
@@ -57,7 +57,7 @@ export async function generatePreview({ github, context, core }) {
 
       // OpenAPI仕様を更新する
       const updateOpenAPISpecFormData = new FormData();
-      updateOpenAPISpecFormData.append('spec', createReadStream('./openapi/openapi.yaml'));
+      updateOpenAPISpecFormData.append('spec', fileFromSync('./openapi/openapi.yaml'));
 
       await fetchReadMe('PUT', `/api-specification/${openapiSpecId}`, updateOpenAPISpecFormData)
         .then(response => Promise.all([response.ok, response.json()]))
