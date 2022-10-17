@@ -24,7 +24,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const script = require('./.github/workflows/auto-sync-to-readme.js');
+            const script = await import('${{ github.workspace }}/.github/workflows/auto-sync-to-readme.js');
             await script.generatePreview({github, context, core});
         env:
           README_API_KEY: ${{secrets.README_API_KEY}}
