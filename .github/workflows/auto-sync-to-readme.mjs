@@ -81,16 +81,12 @@ export async function generatePreview({ github, context, core }) {
       return Promise.reject(createErrorMessage('Failed to fetch version.', json));
     }
   })()
-    .then(() => {
-      const link = `https://dash.readme.com/hub-go/trackiss?redirect=/${versionId}`;
-
-      return github.rest.issues.createComment({
-        issue_number: context.issue.number,
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        body: `Preview link here: <a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`
-      });
-    })
+    .then(() => github.rest.issues.createComment({
+      issue_number: context.issue.number,
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      body: `Preview link here: https://dash.readme.com/hub-go/trackiss?redirect=/${versionId}`
+    }))
     .catch(message => core.setFailed(message));
 };
 
